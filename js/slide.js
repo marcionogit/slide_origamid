@@ -3,6 +3,7 @@ export default class Slide{
     this.slide = document.querySelector(slide);
     this.wrapper = document.querySelector(wrapper);
     this.dist = {finalPosition : 0, startX: 0, movement:0}
+    this.activeClass = 'active';
   }
 
   transition(active){
@@ -67,12 +68,7 @@ export default class Slide{
     this.wrapper.addEventListener('touchend', this.onEnd); 
   }
 
-  bindEvents(){
-    this.onStart = this.onStart.bind(this);
-    this.onMove = this.onMove.bind(this);
-    this.onEnd = this.onEnd.bind(this);
-  }
-
+  
   
   slidePosition(slide){
       const margin = (this.wrapper.offsetWidth - slide.offsetWidth) / 2;
@@ -83,45 +79,72 @@ export default class Slide{
       this.slideArray = [...this.slide.children].map((element) =>{
           const position = this.slidePosition(element);
           return{
-          position,
-           element 
-      }
-      });
-      console.log(this.slideArray)
-      }
-
-  slidesIndexNav(index){
-    const last = this.slideArray.length - 1;
-    this.index = {
-        prev: index ? index - 1 : undefined,
-        active: index,
-        next: index === last ? undefined : index + 1
+              position,
+              element 
+            }
+        });
+        console.log(this.slideArray)
     }
-  }
-
-  changeSlide(index){
-      const activeSlide = this.slideArray[index];
-      this.moveSlide(activeSlide.position);
-      this.slidesIndexNav(index);
-      this.dist.finalPosition = activeSlide.position;
+    
+    slidesIndexNav(index){
+        const last = this.slideArray.length - 1;
+        this.index = {
+            prev: index ? index - 1 : undefined,
+            active: index,
+            next: index === last ? undefined : index + 1
+        }
+    }
+    
+    changeSlide(index){
+        const activeSlide = this.slideArray[index];
+        this.moveSlide(activeSlide.position);
+        this.slidesIndexNav(index);
+        this.dist.finalPosition = activeSlide.position;
+        this.changeActiveClass();
+    }
+    
+    changeActiveClass(){
+        this.slideArray.forEach(item => item.element.classList.remove(this.activeClass));
+        this.slideArray[this.index.active].element.classList.add(this.activeClass)
   }
 
   activePrevSlide(){
     if(this.index.prev !== undefined){
         this.changeSlide(this.index.prev);
     }
-  }
-  
-  activeNextSlide(){
+}
+
+activeNextSlide(){
     if(this.index.next !== undefined){
         this.changeSlide(this.index.next);
     }
-  }
-  init(){
+}
+
+onResize(){
+    setTimeout(() =>{
+        this.slidesConfig();
+        this.changeSlide(this.index.active);
+    }, 1000)
+
+}
+
+addResizeEvent(){
+    window.addEventListener('resize', this.onResize);
+}
+
+bindEvents(){
+  this.onStart = this.onStart.bind(this);
+  this.onMove = this.onMove.bind(this);
+  this.onEnd = this.onEnd.bind(this);
+  this.onResize = this.onResize.bind(this);
+}
+
+init(){
     this.bindEvents();
     this.transition(true);
     this.addSlideEvents();
     this.slidesConfig();
+    this.addResizeEvent();
     return this;
-  }
+}
 }
